@@ -3,9 +3,13 @@ import cv2
 import cvzone 
 import math 
 
-cap = cv2.VideoCapture('video cars.mp4')
+# Load the image
+img = cv2.imread('crowd.jpg')  # Replace 'your_image.jpg' with the path to your image
+
+# Load the YOLO model
 model = YOLO('yolov8n.pt')
 
+# List of class names
 classNames = [
     "person", "bicycle", "car", "motorbike", "aeroplane", "bus", "train", 
     "truck", "boat", "traffic light", "fire hydrant", "stop sign", 
@@ -22,25 +26,28 @@ classNames = [
     "scissors", "teddy bear", "hair drier", "toothbrush"
 ]
 
-while True:
-    sucess, img = cap.read()
-    results = model(img, stream=True)
-    for r in results:
-        boxes = r.boxes 
-        for box in boxes:
-            # Bounding Box
-            x1,y1,x2,y2 = box.xyxy[0]
-            x1,y1,x2,y2 = int(x1),int(y1),int(x2),int(y2)
-            
-            w,h =x2 -x1,y2-y1
+# Perform object detection
+results = model(img, stream=True)
+for r in results:
+    boxes = r.boxes 
+    for box in boxes:
+        # Bounding Box
+        x1, y1, x2, y2 = box.xyxy[0]
+        x1, y1, x2, y2 = int(x1), int(y1), int(x2), int(y2)
+        w, h = x2 - x1, y2 - y1
 
-        cvzone.cornerRect(img,(x1,y1,w,h))
-        # Cofindence
-        conf = math.ceil((box.conf[0]*100))/100
-        # class name
-        cls = int (box.cls[0])
+        cvzone.cornerRect(img, (x1, y1, w, h))
 
-        cvzone.putTextRect(img,f'{classNames[cls]}{conf}',(max(0,x1),max(32,y1)), scale=1, thickness=1)
+        # Confidence
+        conf = math.ceil((box.conf[0] * 100)) / 100
 
-        cv2.imshow('image',img)
-        cv2.waitKey(1)
+        # Class name
+        cls = int(box.cls[0])
+        cvzone.putTextRect(img, f'{classNames[cls]} {conf}', (max(0, x1), max(32, y1)), scale=1, thickness=1)
+# saving img
+        cv2.imwrite('output_image.jpg', img)
+
+# Display the image with detections
+cv2.imshow('Image', img)
+cv2.waitKey(0)
+cv2.destroyAllWindows()
